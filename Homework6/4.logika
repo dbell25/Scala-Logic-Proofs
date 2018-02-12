@@ -1,0 +1,136 @@
+import org.sireum.logika._
+
+def rotateRight(a: ZS, n: Z): ZS = {
+  l"""{ requires 0 <= n ^ n <= a.size
+                 a.size >= 0
+        ensures  A x: (0 ..< n) result(x) == a(a.size + x - n)
+                 A x: (n ..< result.size) result(x) == a(x - n)
+                 result.size = a.size
+  }"""
+
+  var k: Z = 0
+  var r: ZS = ZS.create(a.size, 0)
+
+  println("Before loop 1: a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+
+  while (k < n) {
+    l"""{ invariant A x: (0 ..< k) r(x) == a(a.size + x - n)
+                    k <= r.size
+                    k >= 0
+                    r.size == a.size
+                    A x: (k ..< a.size) r(x) == 0
+                    A x: (n ..< k) r(x) == a(x - n)
+          modifies k, r }"""
+
+    println("Loop 1 pre:    a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+
+    r(k) = a(a.size + k - n)
+    k = k + 1
+
+    println("Loop 1 post:   a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+  }
+
+  println("After loop 1:  a = ", a, ", n = ", n, ", k = ", k, ", r = ", r, " (Before loop 2)")
+
+  while (k < a.size) {
+    l"""{ invariant A x: (n ..< k) r(x) == a(x-n)
+                    A x: (0 ..< n) r(x) == a(a.size + x - n)
+                    k <= r.size
+                    k >= 0
+                    a.size == r.size
+                    n >= 0
+                    ~(k < n)
+                    A x: (k ..< a.size) r(x) == 0
+          modifies k, r
+        }"""
+
+    println("Loop 2 pre:    a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+
+    r(k) = a(k - n)
+    k = k + 1
+
+    println("Loop 2 post:   a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+  }
+
+  println("After loop 2:  a = ", a, ", n = ", n, ", k = ", k, ", r = ", r)
+
+  return r
+}
+
+/*
+
+* Example trace for ``rotateRight(ZS(1, 2, 3), 1)``:
+
+  ```
+  Before loop 1: a = [1, 2, 3], n = 1, k = 0, r = [0, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3], n = 1, k = 0, r = [0, 0, 0]
+  Loop 1 post:   a = [1, 2, 3], n = 1, k = 1, r = [3, 0, 0]
+  After loop 1:  a = [1, 2, 3], n = 1, k = 1, r = [3, 0, 0] (Before loop 2)
+  Loop 2 pre:    a = [1, 2, 3], n = 1, k = 1, r = [3, 0, 0]
+  Loop 2 post:   a = [1, 2, 3], n = 1, k = 2, r = [3, 1, 0]
+  Loop 2 pre:    a = [1, 2, 3], n = 1, k = 2, r = [3, 1, 0]
+  Loop 2 post:   a = [1, 2, 3], n = 1, k = 3, r = [3, 1, 2]
+  After loop 2:  a = [1, 2, 3], n = 1, k = 3, r = [3, 1, 2]
+  ```
+
+* Example trace for ``rotateRight(ZS(1, 2, 3), 2)``:
+
+  ```
+  Before loop 1: a = [1, 2, 3], n = 2, k = 0, r = [0, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3], n = 2, k = 0, r = [0, 0, 0]
+  Loop 1 post:   a = [1, 2, 3], n = 2, k = 1, r = [2, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3], n = 2, k = 1, r = [2, 0, 0]
+  Loop 1 post:   a = [1, 2, 3], n = 2, k = 2, r = [2, 3, 0]
+  After loop 1:  a = [1, 2, 3], n = 2, k = 2, r = [2, 3, 0] (Before loop 2)
+  Loop 2 pre:    a = [1, 2, 3], n = 2, k = 2, r = [2, 3, 0]
+  Loop 2 post:   a = [1, 2, 3], n = 2, k = 3, r = [2, 3, 1]
+  After loop 2:  a = [1, 2, 3], n = 2, k = 3, r = [2, 3, 1]
+  ```
+
+* Example trace for ``rotateRight(ZS(1, 2, 3, 4, 5), 3)``:
+
+  ```
+  Before loop 1: a = [1, 2, 3, 4, 5], n = 3, k = 0, r = [0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3, 4, 5], n = 3, k = 0, r = [0, 0, 0, 0, 0]
+  Loop 1 post:   a = [1, 2, 3, 4, 5], n = 3, k = 1, r = [3, 0, 0, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3, 4, 5], n = 3, k = 1, r = [3, 0, 0, 0, 0]
+  Loop 1 post:   a = [1, 2, 3, 4, 5], n = 3, k = 2, r = [3, 4, 0, 0, 0]
+  Loop 1 pre:    a = [1, 2, 3, 4, 5], n = 3, k = 2, r = [3, 4, 0, 0, 0]
+  Loop 1 post:   a = [1, 2, 3, 4, 5], n = 3, k = 3, r = [3, 4, 5, 0, 0]
+  After loop 1:  a = [1, 2, 3, 4, 5], n = 3, k = 3, r = [3, 4, 5, 0, 0] (Before loop 2)
+  Loop 2 pre:    a = [1, 2, 3, 4, 5], n = 3, k = 3, r = [3, 4, 5, 0, 0]
+  Loop 2 post:   a = [1, 2, 3, 4, 5], n = 3, k = 4, r = [3, 4, 5, 1, 0]
+  Loop 2 pre:    a = [1, 2, 3, 4, 5], n = 3, k = 4, r = [3, 4, 5, 1, 0]
+  Loop 2 post:   a = [1, 2, 3, 4, 5], n = 3, k = 5, r = [3, 4, 5, 1, 2]
+  After loop 2:  a = [1, 2, 3, 4, 5], n = 3, k = 5, r = [3, 4, 5, 1, 2]
+  ```
+
+* Example trace for ``rotateRight(ZS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), 5)``:
+
+  ```
+  Before loop 1: a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 0, r = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 0, r = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 1, r = [5, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 1, r = [5, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 2, r = [5, 6, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 2, r = [5, 6, 0, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 3, r = [5, 6, 7, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 3, r = [5, 6, 7, 0, 0, 0, 0, 0, 0, 0]
+  Loop 1 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 4, r = [5, 6, 7, 8, 0, 0, 0, 0, 0, 0]
+  Loop 1 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 4, r = [5, 6, 7, 8, 0, 0, 0, 0, 0, 0]
+  Loop 1 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 5, r = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0]
+  After loop 1:  a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 5, r = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0] (Before loop 2)
+  Loop 2 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 5, r = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0]
+  Loop 2 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 6, r = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0]
+  Loop 2 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 6, r = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0]
+  Loop 2 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 7, r = [5, 6, 7, 8, 9, 0, 1, 0, 0, 0]
+  Loop 2 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 7, r = [5, 6, 7, 8, 9, 0, 1, 0, 0, 0]
+  Loop 2 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 8, r = [5, 6, 7, 8, 9, 0, 1, 2, 0, 0]
+  Loop 2 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 8, r = [5, 6, 7, 8, 9, 0, 1, 2, 0, 0]
+  Loop 2 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 9, r = [5, 6, 7, 8, 9, 0, 1, 2, 3, 0]
+  Loop 2 pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 9, r = [5, 6, 7, 8, 9, 0, 1, 2, 3, 0]
+  Loop 2 post:   a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 10, r = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+  After loop 2:  a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], n = 5, k = 10, r = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+  ```
+
+ */

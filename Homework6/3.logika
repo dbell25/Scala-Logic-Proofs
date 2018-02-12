@@ -1,0 +1,82 @@
+import org.sireum.logika._
+
+def reverse(a: ZS): Unit = {
+  l"""{ modifies a
+        ensures A x: (0 ..< a.size) a(x) = a_in(a.size - x - 1)
+  }"""
+  var j: Z = 0
+
+  println("Before loop: a = ", a, ", j = ", j)
+
+  while (j < a.size / 2) {
+    l"""{ invariant A x: (0 ..< j) a(x) = a_in(a.size - x - 1) ^ a_in(x) == a(a.size - x -1)
+                    A x: (j ..< a.size - j) a(x) == a_in(x)
+                    j >= 0
+                    j <= (a.size / 2)
+
+          modifies  j, a }"""
+
+    println("Loop pre:    a = ", a, ", j = ", j)
+
+    val t: Z = a(j)
+    a(j) = a(a.size - j - 1)
+    a(a.size - j - 1) = t
+    j = j + 1
+
+    println("Loop post:   a = ", a, ", j = ", j)
+  }
+
+  println("After loop:  a = ", a, ", j = ", j)
+}
+
+/*
+
+* Example trace for ``reverse(ZS(1, 2, 3))``:
+
+  ```
+  Before loop: a = [1, 2, 3], j = 0
+  Loop pre:    a = [1, 2, 3], j = 0
+  Loop post:   a = [3, 2, 1], j = 1
+  After loop:  a = [3, 2, 1], j = 1
+  ```
+
+* Example trace for ``reverse(ZS(1, 2, 3, 4))``:
+
+  ```
+  Before loop: a = [1, 2, 3, 4], j = 0
+  Loop pre:    a = [1, 2, 3, 4], j = 0
+  Loop post:   a = [4, 2, 3, 1], j = 1
+  Loop pre:    a = [4, 2, 3, 1], j = 1
+  Loop post:   a = [4, 3, 2, 1], j = 2
+  After loop:  a = [4, 3, 2, 1], j = 2
+  ```
+
+* Example trace for ``reverse(ZS(1, 2, 3, 2, 1))``:
+
+  ```
+  Before loop: a = [1, 2, 3, 2, 1], j = 0
+  Loop pre:    a = [1, 2, 3, 2, 1], j = 0
+  Loop post:   a = [1, 2, 3, 2, 1], j = 1
+  Loop pre:    a = [1, 2, 3, 2, 1], j = 1
+  Loop post:   a = [1, 2, 3, 2, 1], j = 2
+  After loop:  a = [1, 2, 3, 2, 1], j = 2
+  ```
+
+* Example trace for ``reverse(ZS(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))``:
+
+  ```
+  Before loop: a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], j = 0
+  Loop pre:    a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], j = 0
+  Loop post:   a = [9, 1, 2, 3, 4, 5, 6, 7, 8, 0], j = 1
+  Loop pre:    a = [9, 1, 2, 3, 4, 5, 6, 7, 8, 0], j = 1
+  Loop post:   a = [9, 8, 2, 3, 4, 5, 6, 7, 1, 0], j = 2
+  Loop pre:    a = [9, 8, 2, 3, 4, 5, 6, 7, 1, 0], j = 2
+  Loop post:   a = [9, 8, 7, 3, 4, 5, 6, 2, 1, 0], j = 3
+  Loop pre:    a = [9, 8, 7, 3, 4, 5, 6, 2, 1, 0], j = 3
+  Loop post:   a = [9, 8, 7, 6, 4, 5, 3, 2, 1, 0], j = 4
+  Loop pre:    a = [9, 8, 7, 6, 4, 5, 3, 2, 1, 0], j = 4
+  Loop post:   a = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0], j = 5
+  After loop:  a = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0], j = 5
+  ```
+
+ */

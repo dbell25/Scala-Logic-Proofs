@@ -1,0 +1,23 @@
+(p V q) V r  |-  p V (q V r)
+{
+    1. (p V q) V r              premise
+    2.{
+        3. r                    assume
+        4. (q V r)              Vi2 3
+        5. p V (q V r)          Vi2 4
+    }
+    6.{
+        7. (p V q)              assume
+        8.{
+            9. p               assume
+            10. p V (q V r)      Vi1 9
+        }
+        11.{
+            12. q               assume
+            13. (q V r)         Vi1 12
+            14. p V (q V r)     Vi2 13
+        }
+        15. p V (q V r)         Ve 7 8 11
+    }
+    16. p V (q V r)             Ve 1 6 2
+}

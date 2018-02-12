@@ -1,0 +1,14 @@
+E x ~p(x)  |-  ~(A x p(x))
+{
+1. E x ~p(x)        premise
+2. {
+    3. A x p(x)     assume
+    4. {
+        5. a ~p(a)  assume
+        6. p(a)     Ae 3 a
+        7. _|_      ~e 6 5
+    }
+    8. _|_          Ee 1 4
+    }
+9. ~(A x p(x))      ~i 2
+}

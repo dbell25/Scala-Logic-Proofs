@@ -1,0 +1,139 @@
+import org.sireum.logika._
+
+def allPos(a: ZS): B = {
+  l"""{ ensures result -> A j: Z  0 <= j ^ j < a.size -> a(j) > 0 }"""
+
+  var i: Z = 0
+
+  l"""{ 1. i = 0                                                   premise }"""
+
+  var r: B = true
+
+  l"""{ 1. i = 0                                                   premise
+        2. r = true                                                premise
+        3. 0 <= i                                                  algebra 1
+        4. i <= a.size                                             algebra 1 // note: each sequence in Logika has zero or more elements
+        5. {
+             6. r                                                  assume
+             7. {
+                  8. k: Z
+                  9. {
+                      10. 0 <= k ^ k < i                           assume
+                      11. 0 <= k                                   ^e1 10 // 2 ... fix justification
+                      12. k < i                                    ^e2 10 // 3 ... fix justification
+                      13. _|_                                      algebra 1 11 12 // 4 ... fix justification
+                      14. a(k) > 0                                 _|_e 13 // 5 ... fix justification
+                     }
+                 15. 0 <= k ^ k < i -> a(k) > 0                    ->i 9 // 6 ... fix justification
+                }
+            16. A j: Z  0 <= j ^ j < i -> a(j) > 0                 Ai 7 // 7 ... fix justification
+           }
+       17. r -> A j: Z  0 <= j ^ j < i -> a(j) > 0                 ->i 5 // 8 ... fix justification
+      }"""
+
+  while (i < a.size) {
+    l"""{ invariant 0 <= i
+                    i <= a.size
+                    r -> A j: Z  0 <= j ^ j < i -> a(j) > 0
+          modifies i, r }"""
+
+    if (a(i) <= 0) {
+
+      r = false
+
+      l"""{ 1. 0 <= i                                              premise
+            2. i < a.size                                          premise
+            3. r = false                                           premise
+            4. ~r                                                  algebra 3 // note: algebra can be used on ~ and boolean (but not on ^, ∨, ->, ∀, or ∃)
+            5. {
+                 6. r                                              assume
+                 7. _|_                                            ~e 6 4 //  9 ... fix justification
+                 8. A j: Z  0 <= j ^ j <= i -> a(j) > 0            _|_e 7 // 10 ... fix justification
+               }
+            9. r -> A j: Z  0 <= j ^ j <= i -> a(j) > 0            ->i 5 // 11 ... fix justification
+          }"""
+
+    } else {
+
+      l"""{ 1. 0 <= i                                              premise
+            2. i < a.size                                          premise
+            3. ~(a(i) <= 0)                                        premise
+            4. r -> A j: Z  0 <= j ^ j < i -> a(j) > 0             premise
+            5. a(i) > 0                                            algebra 3 // 12 ... fix justification
+            6. {
+                 7. r                                              assume
+                 8. A j: Z  0 <= j ^ j < i -> a(j) > 0             ->e 4 7 // 13 ... fix justification
+                 9. {
+                     10. k: Z
+                     11. {
+                          12. 0 <= k ^ k <= i                      assume
+                          13. 0 <= k                               ^e1 12 // 14 ... fix justification
+                          14. k <= i                               ^e2 12 // 15 ... fix justification
+                          15. {
+                               16. k < i                           assume
+                               17. 0 <= k ^ k < i                  ^i 13 16 // 16 ... fix justification
+                               18. 0 <= k ^ k < i -> a(k) > 0      Ae 8 k // 17 ... fix justification
+                               19. a(k) > 0                        ->e 18 17 // 18 ... fix justification
+                              }
+                          20. {
+                               21. k = i                           assume
+                               22. a(k) > 0                        algebra 5 21 // 19 ... fix justification
+                              }
+                          23. a(k) > 0                             Ve 14 15 20 // 20 ... fix justification (hint: see last bullet point in the hw notes)
+                         }
+                     24. 0 <= k ^ k <= i -> a(k) > 0               ->i 11
+                    }
+                25. A j: Z  0 <= j ^ j <= i -> a(j) > 0            Ai 9
+               }
+           26. r -> A j: Z  0 <= j ^ j <= i -> a(j) > 0            ->i 6
+          }"""
+
+    }
+
+    l"""{ 1. 0 <= i                                                premise
+          2. i < a.size                                            premise
+          3. r -> A j: Z  0 <= j ^ j <= i -> a(j) > 0              premise
+        }"""
+
+    i = i + 1
+
+    l"""{ 1. 0 <= i_old                                            premise
+          2. i_old < a.size                                        premise
+          3. r -> A j: Z  0 <= j ^ j <= i_old -> a(j) > 0          premise
+          4. i = i_old + 1                                         premise
+          5. i_old = i - 1                                         algebra 4
+          6. r -> A j: Z  0 <= j ^ j <= i - 1 -> a(j) > 0          subst1 5 3 // 21 ... fix justification
+          7. {
+               8. r                                                assume
+               9. A j: Z  0 <= j ^ j <= i - 1 -> a(j) > 0          ->e 6 8 // 22 ... fix justification
+              10. {
+                   11. k: Z
+                   12. 0 <= k ^ k <= i - 1 -> a(k) > 0             Ae 9 k // 23 ... fix justification
+                   13. {
+                        14. 0 <= k ^ k < i                         assume
+                        15. 0 <= k                                 ^e1 14
+                        16. k < i                                  ^e2 14
+                        17. k <= i - 1                             algebra 16 // 24 ... fix justification
+                        18. 0 <= k ^ k <= i - 1                    ^i 15 17 // 25 ... fix justification
+                        19. a(k) > 0                               ->e 12 18 // 26 ... fix justification
+                       }
+                   20. 0 <= k ^ k < i -> a(k) > 0                  ->i 13
+                  }
+              21. A j: Z  0 <= j ^ j < i -> a(j) > 0               Ai 10
+             }
+           22. r -> A j: Z  0 <= j ^ j < i -> a(j) > 0             ->i 7
+           23. 0 <= i                                              algebra 1 4 // 27 ... fix justification
+           24. i <= a.size                                         algebra 2 4 // 28 ... fix justification
+        }"""
+
+  }
+
+  l"""{ 1. i <= a.size                                             premise
+        2. ~(i < a.size)                                           premise
+        3. r -> A j: Z  0 <= j ^ j < i -> a(j) > 0                 premise
+        4. i = a.size                                              algebra 1 2 // 29 ... fix justification
+        5. r -> A j: Z  0 <= j ^ j < a.size -> a(j) > 0            subst1 4 3 // 30 ... fix justification
+      }"""
+
+  return r
+}

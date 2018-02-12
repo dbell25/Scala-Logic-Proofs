@@ -1,0 +1,192 @@
+import org.sireum.logika._
+
+def rotateRight(a: ZS, n: Z): ZS = {
+  l"""{ requires 0 <= n ^ n <= a.size
+                 a.size >= 0
+        ensures  result.size = a.size
+                 A j: (0..<a.size) result(j) = a((a.size + j - n) % a.size)
+  }"""
+
+  var k: Z = 0
+  val r: ZS = ZS.create(a.size, 0)
+
+   while (k < n) {
+       l"""{ invariant A x: (0..<k) r(x) == (a(a.size + x - n))
+                       k <= r.size
+                       k <= n
+                       k >= 0
+                       r.size = a.size
+                       A x: (k..<a.size) r(x) = 0
+                       A x: (n..<k) r(x) == a(x - n)
+             modifies k, r }"""
+
+       r(k) = a(a.size + k - n)
+       k = k + 1
+   }
+
+   while (k < a.size) {
+     l"""{ invariant A x: (n..<k) r(x) == a(x-n)
+                     A x: (0..<n) r(x) == a(a.size + x - n)
+                     k >= 0
+                     k <= r.size
+                     a.size == r.size
+                     n >= 0
+                     ~(k<n)
+                     A i: (k..<a.size) r(i)=0
+           modifies k, r
+     }"""
+
+     r(k) = a(k - n)
+     k = k + 1
+   }
+  return r
+}
+
+def initSubstMap(n: Z): ZS = {
+  l"""{ requires n >= 0
+        ensures  A i: (0 ..< n) result(i) == i
+                  result.size = n
+  }"""
+  val r: ZS = ZS.create(n, 0)
+
+  var k: Z = 0
+  while (k < n) {
+    l"""{ invariant 0 <= k ^ k <= n
+                    A i: (0 ..< k) r(i) == i
+                    r.size == n
+          modifies  k, r }"""
+    r(k) = k
+    k = k + 1
+  }
+
+  return r
+}
+
+def crypt(data: ZS, n: Z, m: Z): Unit = {
+  l"""{ requires 0 <= m
+                 m <= n
+                 n > 0
+        modifies data
+        ensures  A i: (0..<data.size) data_in(i)>=0 ^ data_in(i) < n -> data(i) = (n + data_in(i) - m) % n
+                 A i: (0..<data.size) (data_in(i) >=n V data_in(i) < 0) -> (data(i) = data_in(i))
+                 data.size = data_in.size
+  }"""
+
+  val im: ZS = initSubstMap(n)
+
+  val substMap: ZS = rotateRight(im, m)
+
+  println("Substitution map: substMap = ", substMap)
+
+  var k: Z = 0
+
+  println("Before loop: data = ", data, ", k = ", k)
+
+ while (k < data.size) {
+    l"""{ invariant A i: (0..<k) data_in(i) >= n V data_in(i) < 0 -> data(i) = data_in(i)
+                    A i: (0..<k) data_in(i) < n & data_in(i) >= 0 -> data(i) = (n + data_in(i) - m) % n
+                    A i: (k..<data.size) data(i) = data_in(i)
+                    k >= 0
+                    k <= data.size
+                    data.size = data_in.size
+          modifies  k, data }"""
+
+    println("Loop pre:    data = ", data, ", k = ", k)
+
+    val d: Z = data(k)
+    if (0 <= d & d < n) {
+      data(k) = substMap(data(k))
+      l"""{ // hint: the following should be verifiable
+            1. data(k) == (n + data_in(k) - m) % n  auto }"""
+    }
+    k = k + 1
+
+    println("Loop post:   data = ", data, ", k = ", k)
+  }
+
+  println("After loop:  data = ", data, ", k = ", k)
+}
+
+def rot5(data: ZS): Unit = {
+  l"""{ modifies data
+        ensures  A i: (0..<data.size) data_in(i) >= 0 ^ data_in(i) < 10 -> data(i) = (10 + data_in(i) - 5) % 10
+                 A i: (0..<data.size) data_in(i) >= 10 V data_in(i) < 0 -> data(i) = data_in(i)
+                 data.size = data_in.size
+  }"""
+  crypt(data, 10, 5)
+}
+
+def rot5Theorem(data: ZS): Unit = {
+  l"""{ modifies data
+        ensures  data == data_in }"""
+  rot5(data) // encrypt
+  rot5(data) // decrypt
+}
+
+// The following tests should be verifiable
+
+// Test #1
+val a1: ZS = ZS(0, 1, 2)
+rot5(a1)
+/* Trace log:
+Initial substitution map: im = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Substitution map: substMap = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+Before loop: data = [0, 1, 2], k = 0
+Loop pre:    data = [0, 1, 2], k = 0
+Loop post:   data = [5, 1, 2], k = 1
+Loop pre:    data = [5, 1, 2], k = 1
+Loop post:   data = [5, 6, 2], k = 2
+Loop pre:    data = [5, 6, 2], k = 2
+Loop post:   data = [5, 6, 7], k = 3
+After loop:  data = [5, 6, 7], k = 3
+*/
+assert(a1 == ZS(5, 6, 7))
+ rot5(a1)
+ /* Trace log:
+ Initial substitution map: im = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+ Substitution map: substMap = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+ Before loop: data = [5, 6, 7], k = 0
+ Loop pre:    data = [5, 6, 7], k = 0
+ Loop post:   data = [0, 6, 7], k = 1
+ Loop pre:    data = [0, 6, 7], k = 1
+ Loop post:   data = [0, 1, 7], k = 2
+ Loop pre:    data = [0, 1, 7], k = 2
+ Loop post:   data = [0, 1, 2], k = 3
+ After loop:  data = [0, 1, 2], k = 3
+ */
+ assert(a1 == ZS(0, 1, 2))
+
+// Test #2
+val a0: ZS = ZS(1, 5, 11, 8)
+rot5(a0)
+/* Trace log:
+Initial substitution map: im = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Substitution map: substMap = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+Before loop: data = [1, 5, 11, 8], k = 0
+Loop pre:    data = [1, 5, 11, 8], k = 0
+Loop post:   data = [6, 5, 11, 8], k = 1
+Loop pre:    data = [6, 5, 11, 8], k = 1
+Loop post:   data = [6, 0, 11, 8], k = 2
+Loop pre:    data = [6, 0, 11, 8], k = 2
+Loop post:   data = [6, 0, 11, 8], k = 3
+Loop pre:    data = [6, 0, 11, 8], k = 3
+Loop post:   data = [6, 0, 11, 3], k = 4
+After loop:  data = [6, 0, 11, 3], k = 4
+*/
+assert(a0 == ZS(6, 0, 11, 3))
+rot5(a0)
+/* Trace log:
+Initial substitution map: im = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Substitution map: substMap = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+Before loop: data = [6, 0, 11, 3], k = 0
+Loop pre:    data = [6, 0, 11, 3], k = 0
+Loop post:   data = [1, 0, 11, 3], k = 1
+Loop pre:    data = [1, 0, 11, 3], k = 1
+Loop post:   data = [1, 5, 11, 3], k = 2
+Loop pre:    data = [1, 5, 11, 3], k = 2
+Loop post:   data = [1, 5, 11, 3], k = 3
+Loop pre:    data = [1, 5, 11, 3], k = 3
+Loop post:   data = [1, 5, 11, 8], k = 4
+After loop:  data = [1, 5, 11, 8], k = 4
+*/
+assert(a0 == ZS(1, 5, 11, 8))

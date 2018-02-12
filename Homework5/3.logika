@@ -1,0 +1,44 @@
+import org.sireum.logika._
+
+val x: Z = readInt()
+
+assume(x >= 0)
+
+var r: Z = x
+
+l"""{ 1. (x % 2 = 0) = (x % 2 = 0)                              algebra
+      2. r = x                                                  premise
+      3. x >= 0                                                 premise
+      4. r >= 0                                                 algebra 2 3
+      5. (r % 2 = 0) = (x % 2 = 0)                              algebra 1 2
+    }"""
+
+while (r >= 2) {
+  l"""{ invariant r >= 0
+                  (r % 2 = 0) = (x % 2 = 0)
+                  x >= 0
+                  (x % 2 = 0) = (x % 2 = 0)
+        modifies  r }"""
+
+  r = r - 2
+  l"""{
+        1. (r_old % 2 = 0) = (x % 2 = 0)                        premise
+        2. r_old >= 2                                           premise
+        3. r = r_old - 2                                        premise
+        4. r >= 0                                               algebra 2 3
+        5. (r % 2 = 0) = (x % 2 = 0)                            algebra 1 4 3
+       }"""
+
+}
+
+l"""{ 1. 2 != 0                                                 algebra
+      2. r >= 0                                                 premise
+      3. r % 2 = 0 = (x % 2 =0)                                 premise
+      4. x >= 0                                                 premise
+      5. ~(r >= 2)                                              premise
+      6. (r = 0) = (x % 2 = 0)                                  algebra 4 3 2 5
+      7. (r = 1) = (x % 2 = 1)                                  algebra 4 3 2 5
+      8. (r = 0) = (x % 2 = 0) & (r = 1) = (x % 2 = 1)          ^i 6 7
+    }"""
+
+assert((r == 0) == (x % 2 == 0) & (r == 1) == (x % 2 == 1))

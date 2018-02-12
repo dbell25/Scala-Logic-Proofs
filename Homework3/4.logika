@@ -1,0 +1,17 @@
+(p ^ ~q) -> (r V s), (p ^ ~q), ~s |- r
+{
+    1. (p ^ ~q) -> (r V s)      premise
+    2. (p ^ ~q)                 premise
+    3. ~s                       premise
+    4. (r V s)                  ->e 1 2
+
+    5.{
+        6. s                   assume
+        7. _|_                 ~e 6 3
+        8. r                   _|_e 7
+    }
+    9.{
+        10. r                  assume
+    }
+    11. r                       Ve 4 9 5
+}

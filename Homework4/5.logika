@@ -1,0 +1,51 @@
+A p A q xor1(p, q) -> (p ^ ~q) V (~p ^ q),
+A p A q (p ^ ~q) V (~p ^ q) -> xor1(p, q),
+A p A q xor2(p, q) -> (p V q) ^ (~p V ~q),
+A p A q (p V q) ^ (~p V ~q) -> xor2(p, q)
+|-
+A p A q xor1(p, q) -> xor2(p, q)
+{
+	1. A p A q xor1(p, q) -> (p ^ ~q) V (~p ^ q)        premise
+	2. A p A q (p ^ ~q) V (~p ^ q) -> xor1(p, q)        premise
+	3. A p A q xor2(p, q) -> (p V q) ^ (~p V ~q)        premise
+	4. A p A q (p V q) ^ (~p V ~q) -> xor2(p, q)        premise
+	5.{
+		6. x
+		7. A q xor1(x, q) -> (x ^ ~q) V (~x ^ q)        Ae 1 x
+		8. A q (x ^ ~q) V (~x ^ q) -> xor1(x, q)        Ae 2 x
+		9. A q xor2(x, q) -> (x V q) ^ (~x V ~q)        Ae 3 x
+		10. A q (x V q) ^ (~x V ~q) -> xor2(x, q)       Ae 4 x
+		11. {
+			12. y
+			13. xor1(x, y) -> (x ^ ~y) V (~x ^ y)       Ae 7 y
+			14. (x ^ ~y) V (~x ^ y) -> xor1(x, y)       Ae 8 y
+			15. xor2(x, y) -> (x V y) ^ (~x V ~y)       Ae 9 y
+			16. (x V y) ^ (~x V ~y) -> xor2(x, y)       Ae 10 y
+			17. {
+				18. xor1(x, y)                          assume
+				19. (x ^ !y) V (!x ^ y)                 ->e 13 18
+				20. {
+					21. (x ^ !y)                        assume
+					22. x                               ^e1 21
+					23. !y                              ^e2 21
+					24. (x V y)                         Vi1 22
+					25. (!x V !y)                       Vi2 23
+					26. (x V y) ^ (! x V !y)            ^i 24 25
+				}
+				27. {
+					28. (!x ^ y)                        assume
+					29. !x                              ^e1 28
+					30. y                               ^e2 28
+					31. (x V y)                         Vi2 30
+					32. !x V !y                         Vi1 29
+					33. (x V y) ^ (!x V !y)             ^i 31 32
+				}
+				34. (x V y) ^ (!x V !y)                 Ve 19 20 27
+				35. xor2(x, y)                          ->e 16 34
+			}
+			36. xor1(x, y) -> xor2(x, y)                ->i 17
+		}
+		37. A q xor1(x, q) -> xor2(x, q)                Ai 11
+	}
+38. A p A q xor1(p, q) -> xor2(p, q)                    Ai 5
+}

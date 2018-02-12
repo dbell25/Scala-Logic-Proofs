@@ -1,0 +1,14 @@
+E y A x p(x, y)  |-  A x E y p(x, y)
+{
+    1. E y A x p(x, y)         premise
+    2.{
+        3. a
+        4.{
+            5. b A x p(x, b)    assume
+            6. p(a, b)          Ae 5 a
+            7. E y p(a, y)      Ei 6 b
+        }
+        8. E y p(a, y)          Ee 1 4
+    }
+    9. A x E y p(x, y)          Ai 2
+}

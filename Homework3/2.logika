@@ -1,0 +1,12 @@
+p -> r, q |- (p^q) -> r
+{
+    1. p -> r           premise
+    2. q                premise
+    3.{
+        4. p ^ q        assume
+        5. p            ^e1 4
+        6. p -> r       premise
+        7. r            ->e 6 5
+    }
+    8. (p^q) -> r       ->i 3
+}

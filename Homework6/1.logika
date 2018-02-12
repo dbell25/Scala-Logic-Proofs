@@ -1,0 +1,76 @@
+import org.sireum.logika._
+
+def isPalindrome(a: ZS): B = {
+  l"""{ ensures result = A x: (0 ..< a.size / 2) a(x) == a(a.size - x - 1)
+  }"""
+
+  var j: Z = 0
+  var r: B = true
+
+  println("Before loop: a = ", a, ", j = ", j, ", r = ", r)
+
+  while (j < a.size / 2) {
+    l"""{ invariant j >= 0
+                    j <= a.size
+                    j == 0 -> r == true
+                    j > 0 -> (r == A x: (0 ..< j) a(x) == a(a.size -x -1))
+          modifies  j, r }"""
+
+    println("Loop pre:    a = ", a, ", j = ", j, ", r = ", r)
+
+    if (a(j) != a(a.size - j - 1)) {
+      r = false
+    }
+    j = j + 1
+
+    println("Loop post:   a = ", a, ", j = ", j, ", r = ", r)
+  }
+
+  println("After loop:  a = ", a, ", j = ", j, ", r = ", r)
+
+  return r
+}
+
+/*
+
+* Example trace for ``isPalindrome(ZS(1, 1))``:
+
+  ```
+  Before loop: a = [1, 1], j = 0, r = true
+  Loop pre:    a = [1, 1], j = 0, r = true
+  Loop post:   a = [1, 1], j = 1, r = true
+  After loop:  a = [1, 1], j = 1, r = true
+  ```
+
+* Example trace for ``isPalindrome(ZS(1, 2, 1))``:
+
+  ```
+  Before loop: a = [1, 2, 1], j = 0, r = true
+  Loop pre:    a = [1, 2, 1], j = 0, r = true
+  Loop post:   a = [1, 2, 1], j = 1, r = true
+  After loop:  a = [1, 2, 1], j = 1, r = true
+  ```
+
+* Example trace for ``isPalindrome(ZS(9, 8, 7, 9))``:
+
+  ```
+  Before loop: a = [9, 8, 7, 9], j = 0, r = true
+  Loop pre:    a = [9, 8, 7, 9], j = 0, r = true
+  Loop post:   a = [9, 8, 7, 9], j = 1, r = true
+  Loop pre:    a = [9, 8, 7, 9], j = 1, r = true
+  Loop post:   a = [9, 8, 7, 9], j = 2, r = false
+  After loop:  a = [9, 8, 7, 9], j = 2, r = false
+  ```
+
+* Example trace for ``isPalindrome(ZS(3, 4, 5, 4, 3))``:
+
+  ```
+  Before loop: a = [3, 4, 5, 4, 3], j = 0, r = true
+  Loop pre:    a = [3, 4, 5, 4, 3], j = 0, r = true
+  Loop post:   a = [3, 4, 5, 4, 3], j = 1, r = true
+  Loop pre:    a = [3, 4, 5, 4, 3], j = 1, r = true
+  Loop post:   a = [3, 4, 5, 4, 3], j = 2, r = true
+  After loop:  a = [3, 4, 5, 4, 3], j = 2, r = true
+  ```
+
+ */

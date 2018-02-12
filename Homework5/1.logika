@@ -1,0 +1,38 @@
+import org.sireum.logika._
+
+var x: Z = readInt()
+var y: Z = readInt()
+
+val xIn: Z = x
+val yIn: Z = y
+
+l"""{ 1. xIn == x   premise
+      2. yIn == y   premise
+}"""
+
+x = x + y
+l"""{  1. x = x_old + y         premise
+       2. xIn = x_old           premise
+       3. x_old == xIn          algebra 2
+       4. x == xIn + y          subst1 3 1
+}"""
+
+y = x - y
+l"""{  1. y = x - y_old         premise
+       2. yIn = y_old           premise
+       3. y_old == yIn          algebra 2
+       4. y == x - yIn          algebra 3 1
+       5. x == xIn + y_old      premise
+       6. x == xIn + yIn        algebra 3 5
+       7. y == xIn              algebra 4 6
+}"""
+
+x = x - y
+l"""{ 1. x = x_old - y          premise
+      2. x_old == xIn + yIn     premise
+      3. y == xIn               premise
+      4. x == yIn               algebra 1 2 3
+      5. x == yIn & y == xIn    ^i 4 3
+}"""
+
+assert(x == yIn & y == xIn)

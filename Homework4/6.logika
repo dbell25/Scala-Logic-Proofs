@@ -1,0 +1,55 @@
+A p A q eq(p, q) -> (p -> q) ^ (q -> p),
+A p A q (p -> q) ^ (q -> p) -> eq(p, q) |-
+A p A q A r eq(p, q) ^ eq(q, r) -> eq(p, r)
+{
+    1. A p A q eq(p, q) -> (p -> q) ^ (q -> p) premise
+    2. A p A q (p -> q) ^ (q -> p) -> eq(p, q) premise
+    3.{
+        4. a
+        5.{
+            6. b
+            7.{
+                8. c
+                9. {
+                    10. (eq(a, b) ^ eq(b, c))     assume
+                    11. eq(a, b)                ^e1 10
+                    12. eq(b, c)                ^e2 10
+                    13. A q (eq(a, q) -> (( a -> q) ^ (q -> a)))    Ae 1 a
+                    14. eq(a, b) -> ((a -> b) ^ (b -> a))           Ae 13 b
+                    15. A q ((a -> q) ^ (q -> a)) -> eq(a, q)       Ae 2 a
+                    16. (a -> b) ^ (b -> a) -> eq(a, b)             Ae 15 b
+                    17. A q (eq(b, q) -> ((b -> q) ^ (q -> b)))     Ae 1 b
+                    18. eq(b, c) -> ((b -> c) ^ (c -> b))           Ae 17 c
+                    19. A q ((b -> q) ^ (q -> b)) -> eq(b, q)       Ae 2 b
+                    20. (b -> c) ^ (c -> b) -> eq(b, c)             Ae 19 c
+                    21. eq(a, c) -> ((a -> c) ^ (c -> a))           Ae 13 c
+                    22. (a -> c) ^ (c -> a) -> eq(a, c)             Ae 15 c
+                    23. (b -> c) ^ (c -> b)                         ->e 18 12
+                    24. (a -> b) ^ (b -> a)                         ->e 14 11
+                    25. b -> c                                      ^e1 23
+                    26. c -> b                                      ^e2 23
+                    27. a -> b                                      ^e1 24
+                    28. b -> a                                      ^e2 24
+                    29. {
+                        30. c                                       assume
+                        31. b                                       ->e 26 30
+                        32. a                                       ->e 28 31
+                    }
+                    33. c -> a                                      ->i 29
+                    34. {
+                        35. a                                       assume
+                        36. b                                       ->e 27 35
+                        37. c                                       ->e 25 36
+                    }
+                    38. a -> c                                      ->i 34
+                    39. (a -> c) ^ (c -> a)                         ^i 38 33
+                    40. eq(a, c)                                    ->e 22 39
+                }
+                41. (eq(a, b) ^ eq(b,c)) -> eq(a, c)                ->i 9
+            }
+            42. A r (eq(a, b) ^ eq(b, r)) -> eq(a, r)               Ai 7
+        }
+        43. A q A r (eq(a, q) ^ eq(q, r)) -> eq(a, r)               Ai 5
+    }
+    44. A p A q A r (eq(p, q) ^ eq(q, r)) -> eq(p, r)               Ai 3
+}

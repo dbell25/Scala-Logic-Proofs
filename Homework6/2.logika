@@ -1,0 +1,87 @@
+import org.sireum.logika._
+
+def add(set: ZS, element: Z): ZS = {
+  l"""{ requires A x: (0 ..< set.size) A y:(0 ..< x) set(x) != set(y)
+        ensures  A x: (0 ..< set.size) A y: (0 ..< x) result(x) != result(y)
+                 A a: (0 ..< set.size) E b: (0 ..< result.size) set(a) == result(b)
+                 A b: (0 ..< set.size) E a: (0 ..< result.size) set(b) == result(a)
+  }"""
+  var k: Z = 0
+
+  println("Before loop: set = ", set, ", k = ", k)
+
+  while (k < set.size) {
+    l"""{ invariant A x: (0 ..< k) set(x) != element
+                    k >= 0
+                    k <= set.size
+          modifies  k }"""
+
+    println("Loop pre:    set = ", set, ", k = ", k)
+
+    if (set(k) == element) {
+      val r: ZS = set.clone
+      return r
+    }
+    k = k + 1
+
+    println("Loop post:   set = ", set, ", k = ", k)
+  }
+
+  println("After loop:  set = ", set, ", k = ", k)
+
+  return set :+ element
+}
+
+/*
+
+* Example trace for ``add(ZS(1, 2, 3), 4)``:
+
+  ```
+  Before loop: set = [1, 2, 3], k = 0
+  Loop pre:    set = [1, 2, 3], k = 0
+  Loop post:   set = [1, 2, 3], k = 1
+  Loop pre:    set = [1, 2, 3], k = 1
+  Loop post:   set = [1, 2, 3], k = 2
+  Loop pre:    set = [1, 2, 3], k = 2
+  Loop post:   set = [1, 2, 3], k = 3
+  After loop:  set = [1, 2, 3], k = 3
+  ```
+
+* Example trace for ``add(ZS(1, 2, 3), 2)``:
+
+  ```
+  Before loop: set = [1, 2, 3], k = 0
+  Loop pre:    set = [1, 2, 3], k = 0
+  Loop post:   set = [1, 2, 3], k = 1
+  Loop pre:    set = [1, 2, 3], k = 1
+  ```
+
+* Example trace for ``add(ZS(1, 2, 3, 4), 0)``:
+
+  ```
+  Before loop: set = [1, 2, 3, 4], k = 0
+  Loop pre:    set = [1, 2, 3, 4], k = 0
+  Loop post:   set = [1, 2, 3, 4], k = 1
+  Loop pre:    set = [1, 2, 3, 4], k = 1
+  Loop post:   set = [1, 2, 3, 4], k = 2
+  Loop pre:    set = [1, 2, 3, 4], k = 2
+  Loop post:   set = [1, 2, 3, 4], k = 3
+  Loop pre:    set = [1, 2, 3, 4], k = 3
+  Loop post:   set = [1, 2, 3, 4], k = 4
+  After loop:  set = [1, 2, 3, 4], k = 4
+  ```
+
+* Example trace for ``add(ZS(1, 2, 3, 4), 4)``:
+
+  ```
+  Before loop: set = [1, 2, 3, 4], k = 0
+  Loop pre:    set = [1, 2, 3, 4], k = 0
+  Loop post:   set = [1, 2, 3, 4], k = 1
+  Loop pre:    set = [1, 2, 3, 4], k = 1
+  Loop post:   set = [1, 2, 3, 4], k = 2
+  Loop pre:    set = [1, 2, 3, 4], k = 2
+  Loop post:   set = [1, 2, 3, 4], k = 3
+  Loop pre:    set = [1, 2, 3, 4], k = 3
+  ```
+
+ */
